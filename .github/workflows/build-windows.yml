@@ -1,0 +1,38 @@
+name: Build OpenCode Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build Windows CLI
+        run: bun packages/opencode/script/build.ts --single
+
+      - name: List build output
+        shell: pwsh
+        run: |
+          Get-ChildItem packages/opencode/dist -Recurse
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: bestcode-windows-x64
+          path: packages/opencode/dist/opencode-windows-x64/bin/opencode.exe
+          if-no-files-found: error
